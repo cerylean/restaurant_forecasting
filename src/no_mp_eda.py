@@ -15,17 +15,12 @@ def clean_reshape(bid):
     df.reset_index(drop = True, inplace = True)
     df.drop(df[df['exclude']==1].index,inplace = True)
     df.reset_index(drop = True, inplace = True)
-    # df['bus_day'] = df['bid'].astype(str) + "|" + df['business_day'].astype(str)
     df['items'] = df['cat_b'].str.lower() + "|" + df['minor_b'].str.lower() + "|" + df['item_num'].astype(str)
-
-    # file_name1 = 'dblcheck_bid_nomp' + str(bid) + '.csv'
-    # df.to_csv(file_name1,index=False)
 
     # Import & Create Covers DataFrame
     df_covers = pd.read_csv('BlindedCovers2.csv',sep=",",parse_dates=['BUSINESS_DAY'])
     df_covers.columns = [x.lower() for x in list(df_covers.columns)]
     df_covers = df_covers[df_covers['bid']==bid]
-    # df_covers['bus_day'] = df_covers['bid'].astype(str) + "|" + df_covers['business_day'].astype(str)
     df_covers = df_covers.groupby('business_day',as_index=False)['covers'].sum()
     df_covers['dow'] = df_covers['business_day'].dt.day_name()
     dummy_dow = pd.get_dummies(df_covers['dow'].str.lower())

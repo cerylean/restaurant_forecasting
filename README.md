@@ -11,9 +11,9 @@ ___
 
 I partnered with [Avero](http://www.averoinc.com/), a restaurant software solution, to explore a topic that has been of interest to us both: forecasting. They recently released a new product focused on forecasting restaurant covers (the number of guests expected), and wanted to take the forecast a step further, to predict the number of each menu item sold per day.
 
-I received three years of restaurant item sales and daily weather from three restaurants. The data I was blinded, so I do not know the names of the restaurants nor the names of the items.  I only know which food or beverage category each item belongs to.
+I received three years of restaurant item sales and daily weather from three restaurants. The data was blinded, so I do not know the names of the restaurants nor the names of the items.  I only know which food or beverage category each item belongs to.
 
-From the data, my predictive model uses the following to predict that day's item sales:
+From the data, my model uses the following features to predict that day's item sales:
 
 | Features       | Description      | Type
 | ------------- |:-------------:| -----:|
@@ -45,7 +45,7 @@ Given that there are a large number of features, it was important to understand 
 
  ![Feature Importance](images/feature_importance.png)
 
- Note that this graph is focused only on once specific item.  However, it is clear that only a handful of features are impacting the models overall outcome. This is led by number of covers, followed by last year and last week's item performance.
+ Note that this graph is focused only on **one** specific item.  It is clear that only a handful of features are impacting this item's overall predictive outcome. This is led by number of covers, followed by last year and last week's item performance. Since other items might depend on some of the less important features here to account for things like time dependencies or seasonality (i.e. a weekly special or a fall menu offering), I decided to leave all the features in place for now and proceed.  
  ___
 
  ### The Results
@@ -58,22 +58,24 @@ To the far from ideal case:
 
   ![Worst Case](images/worst_case.png)
 
-It's hard to say exactly what is going on here. This is where not knowing the actual item name becomes detrimental.  Perhaps this item is a "daily special" button in the POS that is used for different things on different days.  Perhaps the kitchen ran out of stock of a specific item.  Maybe the server who often recommends that item took a few days off.
+It's hard to say exactly what is going on here without a bit more context. Perhaps this item is a "daily special" button in the POS that is used for different things on different days.  Perhaps the kitchen ran out of stock of a specific item.  Maybe the server who often recommends that item took a few days off.
+
+Below are the model's results for the top ten most popular items in my holdout set time period for one restaurant. To understand the success of the results, I look at RMSE: the spread of the predicted  vs actual results translated back into the metric of item count. The best case appetizer (first in the list) predicted on average +/- 10 items from the mean of 51 items sold. Overall, the results vary drastically from item to item and none achieve an RMSE variance below 20%.
 
 ![Other Results](images/other_results.png)
 
 Focusing back on the positive, I wanted to get a better understanding of whether the predictions I found for our best case scenario outperformed, say, simply predicting what was ordered the week before.
 
-  ![Four Graph](images/four_graphs6.png)
+![Four Graph](images/four_graphs6.png)
 
-This plots the graphs against the same day last year, last week, and against Avero's current prediction method which takes the average of the item/cover for the same day of the last four weeks and multiplies it by the predicted covers for that day.
+This plots the graphs against the same day last year, last week, and against Avero's current prediction method which takes the weighted average of the item count/cover for the same day of the last four weeks and multiplies it by the predicted covers for that day.
 
-So far it does not look like I'm able to predict better than last week.  At least for this one item, for this specific holdout time period.
+As you can see, simply predicting item counts from last week achieved the best results with an RMSE of 3. At least for this **one** item, for this **specific** holdout time period.
 
 
  ### Thank U, Next
 
- Moving forward to Capstone III, I will explore an LSTM recurrent neural net and hierarchical linear regression to see if I can improve upon these results with a goal of building a one-size-fits-all model that can output multiple items.  I will also look more into feature reduction as I suspect certain features will not impact the outcome of the model of any item.
+ Moving forward to Capstone III, I will explore an LSTM recurrent neural net and hierarchical linear regression to see if I can improve upon these results with a goal of building a one-size-fits-all model that can output multiple menu items.  I will also look more into feature reduction as I suspect certain features will not impact the model outcome for any item.
 
 
 ####  References
