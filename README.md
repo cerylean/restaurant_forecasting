@@ -33,7 +33,7 @@ ___
 
 After experimenting with multiple regression models, I found that the best results derived from a Gradient Boosting Regressor.  
 
-Gradient Boosting's objective is to minimize the loss of the model by adding weak learners one at a time using a gradient descent-like procedure. More specifically, each 'weak learner' represents a decision tree and the loss function the model is focused on minimizing is Ordinary Least Squares regression.
+Gradient Boosting's objective is to minimize the loss of the model by adding weak learners one at a time using a gradient descent-like procedure. More specifically, each 'weak learner' represents a decision tree and the loss function to be minimized is Ordinary Least Squares regression.
 
 I was focused on predicting one item at a time.  This means that, while the hyperparameters remained the same, each item was run through its own Gradient Boosting regression with its own unique splits.  
 
@@ -64,6 +64,8 @@ Focusing back on the positive, I wanted to get a better understanding of whether
 
   ![Four Graph](images/four_graph.png)
 
+  ![Four Graph](images/four_graphs5.png)
+
 This plots the graphs against the same day last year, last week, and against Avero's current prediction method which takes the average of the item/cover for the same day of the last four weeks and multiplies it by the predicted covers for that day.
 
 So far it does not look like I'm able to predict better than last week.  At least for this one item, for this specific holdout time period.
@@ -73,4 +75,6 @@ So far it does not look like I'm able to predict better than last week.  At leas
 
  Moving forward to Capstone III, I will explore an LSTM recurrent neural net and hierarchical linear regression to see if I can improve upon these results with a goal of building a one-size fits all model that can output multiple items.
 
+
+####  References
 https://machinelearningmastery.com/gentle-introduction-gradient-boosting-algorithm-machine-learning/
