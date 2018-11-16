@@ -60,9 +60,22 @@ To the far from ideal case:
 
 It's hard to say exactly what is going on here. This is where not knowing the actual item name becomes detrimental.  Perhaps this item is a "daily special" button in the POS that is used for different things on different days.  Perhaps the kitchen ran out of stock of a specific item.  Maybe the server who often recommends that item took a few days off.
 
+| Bus Id     | Item      | R2  | RMSE   |Mean |Perc
+| :------------- |:-------------:|: -----:| :------------- |:-------------:| -----:|
+| 3  |  food-appetizers-22826289 |   0.371 |   10.0  |   51 |   20.0%|
+| 3  |  food-appetizers-22826232 |   0.114 |   9.0  |   30 |   30.0%|
+| 3  |  food-appetizers-22826270 |   0.325 |   6.0  |   24 |   20.0%|
+| 3  |  food-appetizers-22826246 |   0.241 |   5.0  |   21 |   20.0%|
+| 3  |  food-appetizers-22826649 |   0.303 |   5.0  |   16 |   30.0%|
+| 3  |  food-enchiladas-22826229 |   0.031 |   6.0  |   16 |   40.0%|
+| 3  |  food-fajita-22826294 |   -0.175 |   5.0  |   15 |   30.0%|
+| 3  |  food-sides-23212040  |   -0.068 |   4.0  |   12 |   30.0%|
+| 3  |  food-tacos-23040085  |   -0.219 |   5.0  |   12 |   40.0%|
+| 3  |  food-soup / salad-22826225 |   -0.234 |   5.0  |   11 |   50.0%|
+
 Focusing back on the positive, I wanted to get a better understanding of whether the predictions I found for our best case scenario outperformed, say, simply predicting what was ordered the week before.
 
-  ![Four Graph](images/four_graphs5.png)
+  ![Four Graph](images/four_graphs6.png)
 
 This plots the graphs against the same day last year, last week, and against Avero's current prediction method which takes the average of the item/cover for the same day of the last four weeks and multiplies it by the predicted covers for that day.
 
@@ -71,7 +84,7 @@ So far it does not look like I'm able to predict better than last week.  At leas
 
  ### Thank U, Next
 
- Moving forward to Capstone III, I will explore an LSTM recurrent neural net and hierarchical linear regression to see if I can improve upon these results with a goal of building a one-size fits all model that can output multiple items.
+ Moving forward to Capstone III, I will explore an LSTM recurrent neural net and hierarchical linear regression to see if I can improve upon these results with a goal of building a one-size-fits-all model that can output multiple items.  I will also look more into feature reduction as I suspect certain features will not impact the outcome of the model of any item.
 
 
 ####  References
