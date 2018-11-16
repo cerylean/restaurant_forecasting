@@ -62,8 +62,6 @@ It's hard to say exactly what is going on here. This is where not knowing the ac
 
 Focusing back on the positive, I wanted to get a better understanding of whether the predictions I found for our best case scenario outperformed, say, simply predicting what was ordered the week before.
 
-  ![Four Graph](images/four_graph.png)
-
   ![Four Graph](images/four_graphs5.png)
 
 This plots the graphs against the same day last year, last week, and against Avero's current prediction method which takes the average of the item/cover for the same day of the last four weeks and multiplies it by the predicted covers for that day.
