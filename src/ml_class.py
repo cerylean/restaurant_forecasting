@@ -42,7 +42,7 @@ class Forecaster(object):
         OUTPUT: Loaded DataFrame (df)
 
         '''
-        file_name = 'no_mp_data_bid' + str(self.bid) + ".csv"
+        file_name = 'data/no_mp_data_bid' + str(self.bid) + ".csv"
         self.df_loaded = pd.read_csv(file_name,parse_dates=['business_day'])
         return self.df_loaded
 
@@ -119,6 +119,34 @@ class Forecaster(object):
         self.x_dates = list(holdout_df['business_day'].dt.strftime("%m/%d"))
         return self.x_dates
 
+    def calc_avero_method(self):
+        '''
+
+
+        INPUT:  None
+
+        OUTPUT:
+
+        '''
+        df = self.df_filtered.copy()
+        df['7_days_ago'] = df['business_day']-timedelta(days=7)
+        df['14_days_ago'] = df['business_day']-timedelta(days=14)
+        df['21_days_ago'] = df['business_day']-timedelta(days=21)
+        df['28_days_ago'] = df['business_day']-timedelta(days=28)
+        df = pd.merge(df,self.df_filtered[['business_day','covers',self.item_name]], how = 'left', left_on = '7_days_ago',right_on = 'business_day',suffixes = ('_today','_7'))
+        df = pd.merge(df,self.df_filtered[['business_day','covers',self.item_name]], how = 'left', left_on = '14_days_ago',right_on = 'business_day')
+        df = pd.merge(df,self.df_filtered[['business_day','covers',self.item_name]], how = 'left', left_on = '21_days_ago',right_on = 'business_day',suffixes = ('_14','_21'))
+        df = pd.merge(df,self.df_filtered[['business_day','covers',self.item_name]], how = 'left', left_on = '28_days_ago',right_on = 'business_day',suffixes = ('_21','_28'))
+        split_index = int(len(df)*(1-self.holdout_pct))
+        self.new_holdout_df = df.iloc[split_index:,:]
+        labels = ['_7','_14','_21']
+        items_list = [self.item_name+label for label in labels] + [self.item_name]
+        covers = ['covers'+label for label in labels] + ['covers']
+        item_sum = self.new_holdout_df[items_list].sum(axis=1)
+        covers_sum = self.new_holdout_df[covers].sum(axis=1)
+        avg = item_sum/covers_sum
+        return round(avg * app.new_holdout_df['covers_today'])
+
     def train_test_split(self,holdout_pct=.025):
 
         '''
@@ -174,12 +202,20 @@ class Forecaster(object):
         self.y_pred = self.reg.predict(X_test)
         return self.y_pred
 
-    def calc_rmse(self,X_test,y_test):
-        self.rmse = round((np.sum((self.predict(X_test) - y_test)**2)/len(y_test))**.5)
-        self.perc = round(self.rmse / (np.mean(y_test)),1)
-        return self.rmse
+    def calc_rmse(self,X_test,y_test,calc=False):
+        if calc:
+            rmse = round(((np.sum(X_test - y_test)**2)/len(y_test))**.5)
+            return rmse
+        else:
+            self.rmse = round((np.sum((self.predict(X_test) - y_test)**2)/len(y_test))**.5)
+            self.perc = round(self.rmse / (np.mean(y_test)),1)
+            return self.rmse
 
-    def pred_plot(self, X_test,y_test, last_week=False, last_year=False, send_to_png = False):
+    def print_performance(self, X_test, y_test):
+        rmse = self.calc_rmse(X_test,y_test)
+        print(f"Business:{self.bid}  |  {self.item_name:<20s} | R^2: {self.score} | RMSE: {rmse}  | Mean: {round(np.mean(y_test))} | Perc: {round(self.perc*100,1)}%")
+
+    def pred_plot(self, X_test,y_test, last_week=False, last_year=False, avero_method = False, send_to_png = False):
         '''
         Plots the predicted values against the actual
 
@@ -200,6 +236,9 @@ class Forecaster(object):
             plt.plot(x,X_test[:,-1],color='red',linestyle =':', label = 'Last Year')
         if last_week:
             plt.plot(x,X_test[:,-2],color='orange',linestyle =':', label = 'Last Week')
+        if avero_method:
+            avero = self.calc_avero_method()
+            plt.plot(x,avero,color='magenta',linestyle =':', label = 'Avero Method')
         plt.plot(x, y_pred,color='green',linestyle ='--', label = 'Predicted')
         plt.plot(x, y_test,color ='blue', label = 'Actual')
         plt.xticks(rotation=45)
@@ -214,16 +253,53 @@ class Forecaster(object):
         else:
             plt.show()
 
-
+    def plot_feature_importance(self):
+        feature_names = np.array(list(self.df_prepped.columns))
+        feature_names[-2] = 'sales_last_year'
+        feature_names[-3] = 'sales_last_week'
+        sorted_idx = np.argsort(self.reg.feature_importances_)
+        # plt.figure(figsize = (10,7))
+        plt.bar(feature_names[sorted_idx[::-1]], self.reg.feature_importances_[sorted_idx[::-1]])
+        plt.suptitle('      Feature Importances',fontsize=15)
+        plt.title(f"\n\n{self.item_name}",fontsize=12,style='italic')
+        plt.xticks(rotation=90,fontsize=12)
+        plt.yticks(fontsize=12)
+        plt.ylabel("Normalized decrease in node impurity", fontsize=12)
+        plt.xlabel("Model Features", fontsize=12)
+        plt.tight_layout()
+        plt.show()
 
 if __name__ == '__main__':
 
 
-    app = Forecaster(3,'food|appetizers|22826289')
-    app.load_data()
-    X_train,X_test,y_train, y_test = app.train_test_split()
-    last_week = X_test[:,-2]
-    app.cv_fit(5, X_train, y_train, GradientBoostingRegressor, n_estimators = 1000, min_samples_split = 10,random_state=1000)
-    # app.pred_plot(X_test,y_test,last_year=True)
-    print (f"RMSE Predicted: {app.calc_rmse(X_test, y_test)}")
-    print (f"RMSE Last Week: {round((np.sum((last_week - y_test)**2)/len(y_test))**.5)}")
+    # app = Forecaster(3,'food|appetizers|22826289')
+    # app.load_data()
+    # X_train,X_test,y_train, y_test = app.train_test_split()
+    # # last_week = X_test[:,-2]
+    # app.cv_fit(5, X_train, y_train, GradientBoostingRegressor, n_estimators = 1000, min_samples_split = 10,random_state=1000)
+    # # app.pred_plot(X_test,y_test,last_week=False,avero_method=True)
+    # app.print_performance(X_test, y_test)
+    # avero_test = app.calc_avero_method()
+    # avero = app.calc_rmse(avero_test,y_test, calc=True)
+    # last_week = app.calc_rmse(X_test[:,-2],y_test, calc=True)
+    # last_year = app.calc_rmse(X_test[:,-1], y_test, calc=True)
+    # print (f'Avero: {avero} | LW: {last_week} | LY: {last_year} | Model: {app.rmse}')
+    top_items = ['food|appetizers|22826289', 'food|appetizers|22826232',
+       'food|appetizers|22826270', 'food|appetizers|22826246',
+       'food|appetizers|22826649', 'food|enchiladas|22826229',
+       'food|fajita|22826294', 'food|sides|23212040', 'food|tacos|23040085',
+       'food|soup / salad|22826225']
+
+    for item in top_items:
+        app = Forecaster(3,item)
+        app.load_data()
+        X_train,X_test,y_train, y_test = app.train_test_split()
+        app.cv_fit(5, X_train, y_train, GradientBoostingRegressor, n_estimators = 1000, min_samples_split = 10,random_state=1000)
+        app.print_performance(X_test, y_test)
+    # app4 = Forecaster(4,'apps|apps|18850327')
+    # app4.load_data()
+    # X_train,X_test,y_train, y_test = app4.train_test_split()
+    # # last_week = X_test4[:,-2]
+    # app4.cv_fit(5, X_train, y_train, GradientBoostingRegressor, n_estimators = 1000, min_samples_split = 10,random_state=1000)
+    # app4.pred_plot(X_test,y_test,last_week=False,last_year=False)
+    # app4.print_performance(X_test, y_test)
