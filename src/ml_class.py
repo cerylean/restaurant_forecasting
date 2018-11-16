@@ -2,22 +2,15 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import timedelta
-from sklearn.model_selection import train_test_split, TimeSeriesSplit, GridSearchCV
+from sklearn.model_selection import TimeSeriesSplit
 from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor,  GradientBoostingRegressor
 from sklearn.linear_model import LinearRegression
-# import matplotlib as mpl
-# mpl.rcParams.update({
-#     'font.size'           : 20.0,
-#     'axes.titlesize'      : 'large',
-#     'axes.labelsize'      : 'medium',
-#     'xtick.labelsize'     : 'medium',
-#     'ytick.labelsize'     : 'medium',
-#     'legend.fontsize'     : 'large',
-#     'legend.loc'          : 'upper right'
-# })
+
 
 class Forecaster(object):
-
+'''
+    Forecasts stuff.
+'''
     def __init__(self, bid, item_name):
         self.bid = bid
         self.item_name = item_name
@@ -121,11 +114,12 @@ class Forecaster(object):
 
     def calc_avero_method(self):
         '''
-
+        Calculates the predicted item count using the weighted average of the last
+        four same weekdays multiplied by the predicted covers for the day
 
         INPUT:  None
 
-        OUTPUT:
+        OUTPUT: Predicted Item Sales (int)
 
         '''
         df = self.df_filtered.copy()
@@ -199,10 +193,27 @@ class Forecaster(object):
 
 
     def predict(self,X_test):
+        '''
+        Predicts item count for each day in the holdout set
+
+        INPUT:  X_test (arr)
+
+        OUTPUT: Item count predictions (arr)
+
+        '''
         self.y_pred = self.reg.predict(X_test)
         return self.y_pred
 
     def calc_rmse(self,X_test,y_test,calc=False):
+        '''
+        Calculates the RMSE between the test set and the predicted set
+
+        INPUT:  X_test (arr)
+                y_test (arr)
+
+        OUTPUT: RMSE (int)
+
+        '''
         if calc:
             rmse = round(((np.sum(X_test - y_test)**2)/len(y_test))**.5)
             return rmse
@@ -212,6 +223,15 @@ class Forecaster(object):
             return self.rmse
 
     def print_performance(self, X_test, y_test):
+        '''
+        Prints the Bus Id, Item Name, R2 and RMSE scores for the item
+
+        INPUT:  X_test (arr)
+                y_test (arr)
+
+        OUTPUT: None
+
+        '''
         rmse = self.calc_rmse(X_test,y_test)
         print(f"Business:{self.bid}  |  {self.item_name:<20s} | R^2: {self.score} | RMSE: {rmse}  | Mean: {round(np.mean(y_test))} | Perc: {round(self.perc*100,1)}%")
 
@@ -222,11 +242,12 @@ class Forecaster(object):
 
         INPUT:  X_test (arr)
                 y_test (arr)
-                Include Same Day Last Week data (bool)
-                Include Same Day Last Year data (bool)
-                Kwargs (varies depending on model)
+                Include Same Day Last Week prediction (bool)
+                Include Same Day Last Year prediction (bool)
+                Include Same Day Avero Method prediction (bool)
+                Send to PNG (bool)
 
-        OUTPUT: None
+        OUTPUT: Predicted vs Actual Plot (csv or pop-up)
 
         '''
         x = self.holdout_dates()
@@ -254,6 +275,14 @@ class Forecaster(object):
             plt.show()
 
     def plot_feature_importance(self):
+        '''
+        Plots the predicted values against the actual
+
+        INPUT:  None
+
+        OUTPUT: Feature Importance Plot (pop-up)
+
+        '''
         feature_names = np.array(list(self.df_prepped.columns))
         feature_names[-2] = 'sales_last_year'
         feature_names[-3] = 'sales_last_week'
@@ -271,35 +300,16 @@ class Forecaster(object):
 
 if __name__ == '__main__':
 
+    app = Forecaster(3,'food|appetizers|22826289')
+    app.load_data()
+    X_train,X_test,y_train, y_test = app.train_test_split()
 
-    # app = Forecaster(3,'food|appetizers|22826289')
-    # app.load_data()
-    # X_train,X_test,y_train, y_test = app.train_test_split()
-    # # last_week = X_test[:,-2]
-    # app.cv_fit(5, X_train, y_train, GradientBoostingRegressor, n_estimators = 1000, min_samples_split = 10,random_state=1000)
-    # # app.pred_plot(X_test,y_test,last_week=False,avero_method=True)
-    # app.print_performance(X_test, y_test)
-    # avero_test = app.calc_avero_method()
-    # avero = app.calc_rmse(avero_test,y_test, calc=True)
-    # last_week = app.calc_rmse(X_test[:,-2],y_test, calc=True)
-    # last_year = app.calc_rmse(X_test[:,-1], y_test, calc=True)
-    # print (f'Avero: {avero} | LW: {last_week} | LY: {last_year} | Model: {app.rmse}')
-    top_items = ['food|appetizers|22826289', 'food|appetizers|22826232',
-       'food|appetizers|22826270', 'food|appetizers|22826246',
-       'food|appetizers|22826649', 'food|enchiladas|22826229',
-       'food|fajita|22826294', 'food|sides|23212040', 'food|tacos|23040085',
-       'food|soup / salad|22826225']
+    app.cv_fit(5, X_train, y_train, GradientBoostingRegressor, n_estimators = 1000, min_samples_split = 10,random_state=1000)
+    app.pred_plot(X_test,y_test,last_week=False,avero_method=True)
+    app.print_performance(X_test, y_test)
 
-    for item in top_items:
-        app = Forecaster(3,item)
-        app.load_data()
-        X_train,X_test,y_train, y_test = app.train_test_split()
-        app.cv_fit(5, X_train, y_train, GradientBoostingRegressor, n_estimators = 1000, min_samples_split = 10,random_state=1000)
-        app.print_performance(X_test, y_test)
-    # app4 = Forecaster(4,'apps|apps|18850327')
-    # app4.load_data()
-    # X_train,X_test,y_train, y_test = app4.train_test_split()
-    # # last_week = X_test4[:,-2]
-    # app4.cv_fit(5, X_train, y_train, GradientBoostingRegressor, n_estimators = 1000, min_samples_split = 10,random_state=1000)
-    # app4.pred_plot(X_test,y_test,last_week=False,last_year=False)
-    # app4.print_performance(X_test, y_test)
+    avero_test = app.calc_avero_method()
+    avero = app.calc_rmse(avero_test,y_test, calc=True)
+    last_week = app.calc_rmse(X_test[:,-2],y_test, calc=True)
+    last_year = app.calc_rmse(X_test[:,-1], y_test, calc=True)
+    print (f'Avero: {avero} | LW: {last_week} | LY: {last_year} | Model: {app.rmse}')

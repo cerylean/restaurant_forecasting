@@ -15,7 +15,7 @@ I received three years of restaurant item sales and daily weather from three res
 
 From the data, my predictive model uses the following to predict that day's item sales:
 
-| Data Point       | Description      | Type
+| Features       | Description      | Type
 | ------------- |:-------------:| -----:|
 | Covers| # of guests expected| Integer|
 | DOW     | the weekday     |   Bool |
