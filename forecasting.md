@@ -1,20 +1,33 @@
 
 ## Forecasting Restaurant Items
-#### Predicting item sales at three NYC restaurants
+#### *Predicting item sales at three NYC restaurants*
+
+![food](images/food.png)
 
 Lyssa Treibitz
-Data Science Immersive
 November 2018
-***
+___
 
+### The Data
 
+I partnered with [Avero](http://www.averoinc.com/), a restaurant software solution, to explore a topic that has been of interest for years: forecasting. They recently released a new product focused on forecasting restaurant covers (the number of guests expected per day), and wanted to take the forecast a step further, to predict the number of each menu item sold per day.
 
+The data I received was blinded, so I do not know the names of the restaurants nor the names of the items.  I only know which food or beverage category the item belongs to. 
 
+From the data, my predictive model uses the following:
 
-
-
-
-
+| Data Point       | Description      | Type
+| ------------- |:-------------:| -----:|
+| Covers| # of guests expected| Integer|
+| DOW     | the current dow      |   Bool |
+| Month     | the current dow      |   Bool |
+| Temperature | high & low for the day|   Integer |
+| Precipitation | In inches for the day | Float |
+| Sky description  | i.e. 'Sunny', 'Cloudy'  |  Bool |
+| zebra stripes | are neat      |    $1 |
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
 
 
 
